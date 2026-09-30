@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="color-scheme" content="light only">
+<title>stc Incident Report (IR27)</title>
+<style>
+  html{direction: ltr;}
+  :root{
+    color-scheme: light only;
+    --purple-950:#2A0F45;
+    --purple-800:#3D1A5B;
+    --purple-700:#4C2172;
+    --magenta:#E31C79;
+    --magenta-dim:#F7D9E8;
+    --paper:#FAF8FC;
+    --card:#FFFFFF;
+    --ink:#211A2B;
+    --ink-dim:#6C6478;
+    --line:#E7E1EE;
+    --ok:#1E8E5A;
+    --ok-bg:#E6F4EC;
+    --bad:#D64545;
+    --bad-bg:#FCE9E9;
+    --na:#8A8294;
+    --na-bg:#EFEDF2;
+    --warn:#C9820F;
+    --warn-bg:#FBF0DD;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  button{font-family:inherit;}
+  input,textarea,select{font-family:inherit;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(135deg,var(--purple-950),var(--purple-800) 60%,var(--magenta));
+    color:#fff; padding:14px 16px 16px;
+    box-shadow:0 4px 14px rgba(42,15,69,.25);
+  }
+  .topbar-row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .brand{display:flex; flex-direction:column; line-height:1.1;}
+  .brand .eyebrow{font-size:11px; letter-spacing:.12em; text-transform:uppercase; opacity:.75; font-weight:600;}
+  .brand h1{font-size:17px; margin:2px 0 0; font-weight:800; letter-spacing:.01em;}
+  .meta-row{display:flex; gap:8px; margin-top:12px; overflow-x:auto; padding-bottom:2px;}
+  .meta-field{flex:1 1 0; min-width:120px;}
+  .meta-field label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:.08em; opacity:.75; margin-bottom:3px; font-weight:700;}
+  .meta-field input{
+    width:100%; padding:9px 10px; border-radius:9px; border:1px solid rgba(255,255,255,.35);
+    background:rgba(255,255,255,.12); color:#fff; font-size:14px; font-weight:600;
+  }
+  .meta-field input::placeholder{color:rgba(255,255,255,.6); font-weight:500;}
+  .meta-field input:focus{outline:2px solid #fff; background:rgba(255,255,255,.2);}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:640px; margin:0 auto; padding:14px 12px 120px;}
+  .section{background:var(--card); border:1px solid var(--line); border-radius:16px; margin-bottom:14px; overflow:hidden;}
+  .section-head{
+    padding:12px 14px; background:var(--purple-800); color:#fff; font-weight:800; font-size:14px;
+  }
+  .section-body{padding:14px;}
+  .field{margin-bottom:12px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{display:block; font-size:12px; font-weight:700; color:var(--purple-800); margin-bottom:5px;}
+  .field input[type=text], .field input[type=date], .field input[type=time], .field textarea, .field select{
+    width:100%; padding:10px 11px; border-radius:10px; border:1px solid var(--line);
+    font-size:14px; background:#fcfbfd; color:var(--ink);
+  }
+  .field textarea{resize:vertical; min-height:70px; line-height:1.4;}
+  .field-row{display:flex; gap:10px;}
+  .field-row .field{flex:1;}
+
+  /* ---------- timeline entries ---------- */
+  .timeline-item{display:flex; gap:8px; align-items:flex-start; margin-bottom:8px; padding:10px; background:#fcfbfd; border:1px solid var(--line); border-radius:10px;}
+  .timeline-item input[type=time]{width:100px; flex:0 0 auto; padding:9px 8px; border-radius:8px; border:1px solid var(--line); font-size:13px;}
+  .timeline-item input[type=text]{flex:1; padding:9px 10px; border-radius:8px; border:1px solid var(--line); font-size:13px;}
+  .timeline-item .rm{
+    flex:0 0 auto; width:30px; height:30px; border-radius:8px; border:1px solid var(--bad); background:var(--bad-bg);
+    color:var(--bad); font-weight:800; cursor:pointer; font-size:14px;
+  }
+  .addrow-btn{
+    width:100%; padding:10px; border-radius:10px; border:1.5px dashed var(--line); background:#fcfbfd;
+    color:var(--purple-800); font-weight:700; font-size:13px; cursor:pointer;
+  }
+
+  /* ---------- photos ---------- */
+  .photo-native-wrap{margin-top:4px; border:1.5px dashed var(--line); border-radius:10px; background:#fcfbfd; overflow:hidden;}
+  .photo-native-label{padding:8px 10px 0; font-size:12.5px; font-weight:700; color:var(--purple-800);}
+  .photo-native-input{
+    display:block; width:100%; padding:8px 10px 10px; border:none; background:transparent;
+    font-size:12.5px; color:var(--ink-dim); box-sizing:border-box;
+  }
+  .photo-strip{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
+  .photo-thumb{position:relative; width:96px; height:96px; border-radius:12px; overflow:hidden; border:1px solid var(--line); box-shadow:0 2px 6px rgba(42,15,69,.10);}
+  .photo-thumb img{width:100%; height:100%; object-fit:cover; display:block; cursor:pointer;}
+  .photo-thumb .rm{
+    position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%;
+    background:rgba(0,0,0,.6); color:#fff; border:none; font-size:12px; line-height:22px; text-align:center; padding:0; cursor:pointer;
+  }
+
+  /* ---------- patient highlight ---------- */
+  .patient-note{font-size:11px; color:var(--ink-dim); margin-top:4px;}
+
+  /* ---------- bottom bar ---------- */
+  .bottombar{
+    position:fixed; left:0; right:0; bottom:0; z-index:50;
+    background:#fff; border-top:1px solid var(--line);
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    display:flex; gap:10px; box-shadow:0 -6px 18px rgba(42,15,69,.08);
+  }
+  .btn-primary{
+    flex:1; background:var(--magenta); color:#fff; border:none; border-radius:12px; padding:13px 16px;
+    font-weight:800; font-size:15px; cursor:pointer;
+  }
+  .btn-secondary{
+    background:#fff; color:var(--purple-800); border:1.5px solid var(--purple-800); border-radius:12px; padding:0 16px;
+    font-weight:800; font-size:14px; cursor:pointer;
+  }
+
+  /* ---------- review / print view : stc report format ---------- */
+  #reviewOverlay{position:fixed; inset:0; background:#DCD6E4; z-index:100; overflow:auto; display:none;}
+  #reviewOverlay.show{display:block;}
+  .review-head{background:linear-gradient(135deg,var(--purple-950),var(--purple-800)); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5;}
+  .review-head h2{margin:0; font-size:15px;}
+  .closebtn{background:rgba(255,255,255,.15); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer; flex:0 0 auto;}
+  .review-body{max-width:760px; margin:0 auto; padding:14px 10px 24px;}
+
+  /* ---------- IR27 exact-template report ---------- */
+  .rpt-sheet{background:#fff; overflow-x:auto; box-shadow:0 6px 22px rgba(42,15,69,.18); margin-bottom:16px; min-width:0; border:1px solid #000; border-bottom:none;}
+  .rpt-banner{display:flex; align-items:stretch; min-height:56px; background:var(--purple-800); border-bottom:1px solid #000;}
+  .rpt-banner-left{flex:1; display:flex; align-items:center; justify-content:center; padding:10px 16px; border-right:1px solid #000;}
+  .rpt-banner-left h1{color:#fff; font-size:20px; margin:0; letter-spacing:.02em; font-weight:800; text-transform:uppercase; text-align:center;}
+  .rpt-banner-right{width:170px; background:#fff; display:flex; align-items:center; justify-content:center; padding:10px;}
+  .rpt-logo-img{max-width:140px; max-height:56px; display:block;}
+
+  table.ir-table{width:100%; min-width:760px; border-collapse:collapse; table-layout:fixed; font-size:12.5px; color:#000;}
+  table.ir-table td{border:1px solid #000; padding:7px 9px; vertical-align:top; color:#000; background:#fff;}
+  table.ir-table td.ir-lbl{font-weight:800; width:12%;}
+  table.ir-table td.ir-val{width:18%;}
+  table.ir-table td.ir-safety{text-align:center; vertical-align:middle;}
+  .ir-safety-title{font-size:20px; font-weight:800; margin-bottom:4px;}
+  .ir-safety-reportno{font-size:14px; font-weight:800;}
+
+  table.ir-table td.ir-th{background:#D9D9D9; font-weight:800; text-transform:uppercase; text-align:center; letter-spacing:.02em;}
+  table.ir-table td.ir-th-left{background:#D9D9D9; font-weight:800; text-transform:uppercase; text-align:left;}
+
+  .ir-timeline-block{font-size:12.5px; line-height:1.55;}
+  .ir-timeline-title{font-weight:800; text-decoration:underline; margin-bottom:2px;}
+  .ir-timeline-row{font-weight:600;}
+  .ir-action-title{font-weight:800; text-decoration:underline; margin-top:8px; margin-bottom:2px;}
+  .ir-patient{color:#D6001C; font-weight:800; margin-top:8px;}
+
+  .ir-photos-cell{padding:10px !important;}
+  .ir-photos-grid{display:flex; flex-wrap:wrap; gap:10px;}
+  .ir-photo-block{width:230px;}
+  .ir-photo-block img{width:230px; height:230px; object-fit:cover; border:1px solid #999; display:block; cursor:pointer;}
+
+  .rpt-footer-bar{height:8px; background:linear-gradient(90deg,var(--purple-800),var(--magenta));}
+  .rpt-footer{padding:10px 14px; text-align:center; font-size:10.5px; color:var(--ink-dim); border-top:1px solid #E3DEEC;}
+
+  .rv-actions{display:flex; flex-wrap:wrap; gap:10px; padding:4px 2px 24px;}
+  .rv-actions button{min-width:130px;}
+  .rv-help-note{
+    background:#F1EDF6; border:1px solid #D8D2E2; border-radius:10px; padding:10px 12px;
+    font-size:12.5px; color:var(--ink-dim); line-height:1.5; margin:14px 2px 4px;
+  }
+  .rv-help-note b{color:var(--purple-800);}
+
+  @page{ size: A4 landscape; margin: 10mm; }
+
+  @media print{
+    .topbar,.bottombar,.closebtn,.rv-actions,.review-head,.rv-help-note,.wrap{display:none !important;}
+    #reviewOverlay{position:static; overflow:visible; background:#fff;}
+    .review-body{padding:0; max-width:100%;}
+    body{background:#fff;}
+    .rpt-sheet{box-shadow:none; margin-bottom:0; overflow-x:visible;}
+    table.ir-table{min-width:0;}
+    tr, td{page-break-inside:avoid;}
+    .ir-photo-block{page-break-inside:avoid;}
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact; }
+  }
+
+  .toast{
+    position:fixed; bottom:82px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff;
+    padding:9px 16px; border-radius:999px; font-size:13px; font-weight:600; z-index:200; opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .toast.show{opacity:1;}
+
+  /* ---------- lightbox ---------- */
+  #lightbox{position:fixed; inset:0; background:rgba(20,10,32,.94); z-index:300; display:none; align-items:center; justify-content:center; flex-direction:column; padding:20px;}
+  #lightbox.show{display:flex;}
+  #lightbox img{max-width:100%; max-height:80vh; border-radius:10px; box-shadow:0 10px 40px rgba(0,0,0,.5);}
+  #lightbox .lb-cap{color:#fff; font-size:13px; font-weight:700; margin-top:14px;}
+  #lightbox .lb-close{
+    position:absolute; top:18px; right:18px; width:38px; height:38px; border-radius:50%;
+    background:rgba(255,255,255,.15); color:#fff; border:none; font-size:18px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<noscript>
+  <div style="background:#D64545;color:#fff;padding:16px;font-family:sans-serif;font-size:14px;text-align:center;">
+    This form needs JavaScript to load. Please open this file in Safari or Chrome instead of a quick preview.
+  </div>
+</noscript>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <div class="brand">
+      <div class="eyebrow">stc &middot; Safety Department</div>
+      <h1>Incident Report (IR27)</h1>
+    </div>
+  </div>
+  <div class="meta-row">
+    <div class="meta-field"><label>Date</label><input id="m-date" type="date"></div>
+    <div class="meta-field"><label>Building No</label><input id="m-building" placeholder="e.g. A5 1F"></div>
+    <div class="meta-field"><label>Report No</label><input id="m-reportno" placeholder="IR27 YY-MM-DD XX"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="section">
+    <div class="section-head">Incident Details</div>
+    <div class="section-body">
+      <div class="field-row">
+        <div class="field"><label>Incident Date</label><input type="date" id="f-incdate"></div>
+        <div class="field"><label>Incident Time</label><input type="time" id="f-inctime"></div>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <select id="f-description">
+          <option value="">Select…</option>
+          <option>FAA</option>
+          <option>FAA-Dust Accumulation</option>
+          <option>Panel Fault</option>
+          <option>Medical</option>
+          <option>Elevator Rescue</option>
+          <option>Fire</option>
+          <option>Smoke</option>
+          <option>Bakhoor</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="f-description-other" placeholder="Specify description…" style="display:none; margin-top:8px;">
+      </div>
+      <div class="field">
+        <label>Respondent Name</label>
+        <select id="f-respondent">
+          <option value="">Select…</option>
+          <option>RRT</option>
+          <option>RRR and Meena</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="f-respondent-other" placeholder="Specify respondent…" style="display:none; margin-top:8px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Location</div>
+    <div class="section-body">
+      <div class="field"><label>Affected Buildings / Area / Items</label><input type="text" id="f-affected" placeholder="e.g. NONE"></div>
+      <div class="field"><label>Location</label><input type="text" id="f-location" placeholder="e.g. A5 1F Ladies Lounge"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Reason</div>
+    <div class="section-body">
+      <div class="field"><textarea id="f-reason" placeholder="Brief reason for the incident…"></textarea></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Response Time Sequence</div>
+    <div class="section-body">
+      <label style="display:block; font-size:12px; font-weight:700; color:var(--purple-800); margin-bottom:8px;">Timeline</label>
+      <div id="timelineList"></div>
+      <button class="addrow-btn" id="btnAddTimeline" type="button">+ Add timeline entry</button>
+
+      <div class="field" style="margin-top:14px;">
+        <label>Action Taken</label>
+        <textarea id="f-action" placeholder="Describe the action taken in full…" style="min-height:110px;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Patient / Person Involved</div>
+    <div class="section-body">
+      <div class="field">
+        <input type="text" id="f-patient" placeholder="Full name">
+        <div class="patient-note">Shown in bold red in the final report, matching the official IR27 format.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">Incident Photos</div>
+    <div class="section-body">
+      <div class="photo-native-wrap">
+        <div class="photo-native-label">📷 Add photo(s)</div>
+        <input type="file" class="photo-native-input" id="photoInput" accept="image/*" multiple>
+      </div>
+      <div class="photo-strip" id="photoStrip"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottombar">
+  <button class="btn-primary" id="btnFinish">Review &amp; finish</button>
+</div>
+
+<div id="reviewOverlay">
+  <div class="review-head">
+    <h2>Incident Report Preview</h2>
+    <button class="closebtn" id="btnCloseReview">✕</button>
+  </div>
+  <div class="review-body" id="reviewBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="lightbox">
+  <button class="lb-close" id="lbClose">✕</button>
+  <img id="lbImg" src="" alt="Incident photo">
+  <div class="lb-cap" id="lbCap"></div>
+</div>
+
+<script>
+const STC_LOGO = "data:image/png;base64,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pyZl5EbHJ8bIw2tfua+Cd3JYMfy4BKfDdbys8Xh5S0tNT0ttW0dbV1dX74BT57rEuZcoROCNFRAgA4tFiYqLiE2ISMwIS89ITpsenTMzIyLaxkaVJeNJ+zjYrBi6LCfvDEONd7R211R0tDS1NdW0d59wdbR293QN9PYOqKpGBAA6gTYsJdyot2eKSQkPt0VGW6ITrQkp0Ump8WnZSVnZ8VGxNqaw0aPHh//wlWDFoLbh3axodM4nIl3jrn6Pa8Ctq5qq68SJiDNJMimyJElhNqslTEaGyAYDyt6TY7T7iEb9hMNOnwn3rgwO2TbEPifipKp8YMA94HSrqscYqsEYybJiMivh4TaTmTHGBt8/jvYJT5D35zRLOmJRjX3PNSIg14DmdDo1lasq1zQdAGSJySZZUVhYmNUSJjOGRrfPoSsM1y1Pl+uKAWfBftFYISAw1cDEEggICFYICAhWCAgIVggICFYICAhWCAgIVggICFYICAhWCAgIVggICFYICAhWCAgIVggICFYICAhWCAgIVggICFYICAgIVggICFYICAhWCAgIVggICFYICAhWCAgIVggICFYICAhWCAhMafx/GK1YbxL61+IAAAAASUVORK5CYII=";
+
+const $ = sel => document.querySelector(sel);
+const el = (tag, cls, html) => { const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; };
+
+let state = {
+  meta:{date:"", building:"", reportno:""},
+  incident:{date:"", time:"", description:"", respondent:"", affected:"", location:"", reason:"", action:"", patient:""},
+  timeline:[],
+  photos:[]
+};
+
+function escapeHtml(str){
+  if(!str) return "";
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 1800);
+}
+function openLightbox(src, caption){
+  $("#lbImg").src = src;
+  $("#lbCap").textContent = caption || "";
+  $("#lightbox").classList.add("show");
+}
+function closeLightbox(){ $("#lightbox").classList.remove("show"); }
+$("#lbClose").onclick = closeLightbox;
+$("#lightbox").addEventListener("click", (e)=>{ if(e.target.id === "lightbox") closeLightbox(); });
+
+/* ---------------- meta fields ---------------- */
+["date","building","reportno"].forEach(k=>{
+  $("#m-"+k).addEventListener("input", ()=>{ state.meta[k] = $("#m-"+k).value; });
+});
+/* ---------------- incident fields ---------------- */
+const fieldMap = {
+  "f-incdate":"date", "f-inctime":"time",
+  "f-affected":"affected", "f-location":"location", "f-reason":"reason", "f-action":"action", "f-patient":"patient"
+};
+Object.keys(fieldMap).forEach(id=>{
+  $("#"+id).addEventListener("input", ()=>{ state.incident[fieldMap[id]] = $("#"+id).value; });
+});
+
+/* description / respondent: dropdown with an "Other" free-text fallback */
+function wireDropdownWithOther(selectId, otherId, stateKey){
+  const sel = $("#"+selectId);
+  const other = $("#"+otherId);
+  function sync(){
+    if(sel.value === "Other"){
+      other.style.display = "block";
+      state.incident[stateKey] = other.value;
+    }else{
+      other.style.display = "none";
+      state.incident[stateKey] = sel.value;
+    }
+  }
+  sel.addEventListener("change", sync);
+  other.addEventListener("input", sync);
+  sync();
+}
+wireDropdownWithOther("f-description","f-description-other","description");
+wireDropdownWithOther("f-respondent","f-respondent-other","respondent");
+
+/* ---------------- timeline ---------------- */
+function renderTimeline(){
+  const list = $("#timelineList");
+  list.innerHTML = "";
+  state.timeline.forEach((row, idx)=>{
+    const div = el("div","timeline-item");
+    const timeInput = el("input"); timeInput.type="time"; timeInput.value = row.time;
+    timeInput.oninput = ()=> row.time = timeInput.value;
+    const textInput = el("input"); textInput.type="text"; textInput.placeholder="Event description"; textInput.value = row.event;
+    textInput.oninput = ()=> row.event = textInput.value;
+    const rm = el("button","rm","✕"); rm.type="button";
+    rm.onclick = ()=>{ state.timeline.splice(idx,1); renderTimeline(); };
+    div.appendChild(timeInput); div.appendChild(textInput); div.appendChild(rm);
+    list.appendChild(div);
+  });
+}
+$("#btnAddTimeline").onclick = ()=>{
+  state.timeline.push({time:"", event:""});
+  renderTimeline();
+};
+renderTimeline();
+
+/* ---------------- photos ---------------- */
+function renderPhotos(){
+  const strip = $("#photoStrip");
+  strip.innerHTML = "";
+  state.photos.forEach((src, idx)=>{
+    const th = el("div","photo-thumb");
+    th.innerHTML = `<img src="${src}"><button class="rm">✕</button>`;
+    th.querySelector("img").onclick = () => openLightbox(src, `Photo ${idx+1}`);
+    th.querySelector(".rm").onclick = (ev) => { ev.stopPropagation(); state.photos.splice(idx,1); renderPhotos(); };
+    strip.appendChild(th);
+  });
+}
+function handlePhotoFiles(files){
+  files = Array.from(files || []);
+  if(!files.length) return;
+  let remaining = files.length;
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const maxW = 1600;
+        const scale = Math.min(1, maxW / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+        state.photos.push(dataUrl);
+        remaining--;
+        if(remaining === 0){ renderPhotos(); }
+      };
+      img.onerror = ()=>{ remaining--; toast("Could not read that photo"); };
+      img.src = ev.target.result;
+    };
+    reader.onerror = ()=>{ remaining--; toast("Could not read that photo"); };
+    reader.readAsDataURL(file);
+  });
+}
+$("#photoInput").addEventListener("change", (e)=>{
+  handlePhotoFiles(e.target.files);
+  e.target.value = "";
+});
+
+/* ---------------- download report ---------------- */
+function downloadReportHtml(sheetEl){
+  try{
+    const styleTag = document.querySelector("style");
+    const cssText = styleTag ? styleTag.innerHTML : "";
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="color-scheme" content="light only">
+      <title>Incident Report</title>
+      <style>${cssText}
+        html,body{background:#fff; margin:0; padding:16px;}
+        .rpt-sheet{box-shadow:none; margin-bottom:0;}
+      </style></head>
+      <body>${sheetEl.outerHTML}</body></html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const rn = (state.meta.reportno || "incident-report").trim().replace(/\s+/g,"_");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${rn}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=> URL.revokeObjectURL(url), 4000);
+    toast("Report file downloaded");
+  }catch(err){
+    console.error("Download error", err);
+    toast("Could not download the report");
+  }
+}
+
+/* ---------------- review / finish ---------------- */
+$("#btnFinish").onclick = ()=>{
+  const body = $("#reviewBody");
+  body.innerHTML = "";
+
+  const sheet = el("div","rpt-sheet");
+
+  const timelineHtml = state.timeline.length
+    ? `<div class="ir-timeline-title">TIMELINE:</div>` +
+      state.timeline.map(row=>`<div class="ir-timeline-row">${escapeHtml(row.time)}H: ${escapeHtml(row.event)}</div>`).join("")
+    : "";
+  const actionHtml = state.incident.action
+    ? `<div class="ir-action-title">Action Taken:</div><div>${escapeHtml(state.incident.action)}</div>` : "";
+  const patientHtml = state.incident.patient
+    ? `<div class="ir-patient">Patient : ${escapeHtml(state.incident.patient)}</div>` : "";
+
+  const photosHtml = state.photos.length
+    ? `<div class="ir-photos-grid">${state.photos.map((src,idx)=>
+        `<div class="ir-photo-block"><img src="${src}" data-idx="${idx}"></div>`).join("")}</div>`
+    : "";
+
+  sheet.innerHTML = `
+    <div class="rpt-banner">
+      <div class="rpt-banner-left"><h1>Incident Report Form</h1></div>
+      <div class="rpt-banner-right"><img class="rpt-logo-img" src="${STC_LOGO}" alt="stc logo"></div>
+    </div>
+    <table class="ir-table">
+      <tr>
+        <td class="ir-lbl">Date</td>
+        <td class="ir-val">${escapeHtml(state.meta.date) || "—"}</td>
+        <td class="ir-safety" colspan="2">
+          <div class="ir-safety-title">SAFETY DEPARTMENT</div>
+        </td>
+      </tr>
+      <tr>
+        <td class="ir-lbl">Building No</td>
+        <td class="ir-val">${escapeHtml(state.meta.building) || "—"}</td>
+        <td class="ir-safety" colspan="2">
+          <div class="ir-safety-reportno">Report No: ${escapeHtml(state.meta.reportno) || "—"}</div>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="ir-th">Incident Date</td>
+        <td class="ir-th">Incident Time</td>
+        <td class="ir-th">Description</td>
+        <td class="ir-th">Respondent Name</td>
+      </tr>
+      <tr>
+        <td>${escapeHtml(state.incident.date) || "—"}</td>
+        <td>${escapeHtml(state.incident.time) || "—"}</td>
+        <td rowspan="3">${escapeHtml(state.incident.description) || "—"}</td>
+        <td rowspan="3">${escapeHtml(state.incident.respondent) || "—"}</td>
+      </tr>
+      <tr>
+        <td class="ir-th">Affected Buildings / Area / Items</td>
+        <td class="ir-th">Location</td>
+      </tr>
+      <tr>
+        <td>${escapeHtml(state.incident.affected) || "—"}</td>
+        <td>${escapeHtml(state.incident.location) || "—"}</td>
+      </tr>
+
+      <tr>
+        <td class="ir-th" colspan="2">Reason</td>
+        <td class="ir-th" colspan="2">Incident Photos</td>
+      </tr>
+      <tr>
+        <td colspan="2">${escapeHtml(state.incident.reason) || "—"}</td>
+        <td colspan="2" rowspan="3" class="ir-photos-cell">${photosHtml || "&nbsp;"}</td>
+      </tr>
+      <tr>
+        <td class="ir-th-left" colspan="2">Response Time Sequence</td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <div class="ir-timeline-block">
+            ${timelineHtml}
+            ${actionHtml}
+            ${patientHtml}
+          </div>
+        </td>
+      </tr>
+    </table>
+    <div class="rpt-footer-bar"></div>
+  `;
+
+  sheet.querySelectorAll(".ir-photo-block img").forEach(img=>{
+    const idx = parseInt(img.dataset.idx, 10);
+    img.style.cursor = "pointer";
+    img.onclick = () => openLightbox(state.photos[idx], `Photo ${idx+1}`);
+  });
+
+  const footer = el("div","rpt-footer","Internal &middot; General Department of Security and Safety &middot; stc");
+  sheet.appendChild(footer);
+
+  body.appendChild(sheet);
+
+  const helpNote = el("div","rv-help-note",
+    "<b>Print</b> opens your device's print dialog directly. If that doesn't respond, use <b>Download Report</b> to save the file, then open it and print/share from there.");
+  body.appendChild(helpNote);
+
+  const actions = el("div","rv-actions");
+  const printBtn = el("button","btn-primary","🖨 Print / Save as PDF");
+  printBtn.style.flex="1";
+  printBtn.type="button";
+  printBtn.onclick = ()=> window.print();
+  const downloadBtn = el("button","btn-secondary","⬇ Download Report");
+  downloadBtn.style.flex="1";
+  downloadBtn.type="button";
+  downloadBtn.onclick = ()=> downloadReportHtml(sheet);
+  const backBtn = el("button","btn-secondary","Back to form");
+  backBtn.style.flex="1";
+  backBtn.type="button";
+  backBtn.onclick = closeReview;
+  actions.appendChild(printBtn);
+  actions.appendChild(downloadBtn);
+  actions.appendChild(backBtn);
+  body.appendChild(actions);
+
+  $("#reviewOverlay").classList.add("show");
+};
+function closeReview(){ $("#reviewOverlay").classList.remove("show"); }
+$("#btnCloseReview").onclick = closeReview;
+
+/* ---------------- init ---------------- */
+function boot(){
+  try{
+    const today = new Date().toISOString().slice(0,10);
+    $("#m-date").value = today;
+    state.meta.date = today;
+    $("#f-incdate").value = today;
+    state.incident.date = today;
+  }catch(err){
+    console.error("Init error", err);
+    document.body.insertAdjacentHTML("afterbegin",
+      '<div style="background:#D64545;color:#fff;padding:12px 16px;font-size:13px;font-weight:600;">'+
+      'This page needs to run in a full browser. Tap Share → Open in Safari (or your browser) instead of the quick preview.</div>');
+  }
+}
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", boot);
+}else{
+  boot();
+}
+</script>
+</body>
+</html>
